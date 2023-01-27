@@ -2,7 +2,27 @@ const Tour = require('./../models/tourModel');
 
 exports.getAllTours = async (req, res) => {
   try {
-    const tours = await Tour.find();
+    //creating an object which contains all the query..
+    const queryObj = { ...req.query };
+    //removing some the query strings which is used for some other functionality...
+    const excludeFields = ['page', 'sort', 'limit', 'fields'];
+    //looping to deleted the excluded from the queryObj,,
+    excludeFields.forEach((el) => delete queryObj[el]);
+
+    // console.log(queryObj);
+
+    //some advanced filterinngg. bascially lessthan and greater than....
+
+    //for this we have to first convert object into a string..
+    let queryStr = JSON.stringify(queryObj);
+    //here basically what we are doing is that we are replace less than greater sings
+    //by converting them into string with adding a $ because that is searchable..
+    queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`);
+    console.log(JSON.parse(queryStr));
+
+    //making a query field to find...
+    const query = Tour.find(JSON.parse(queryStr));
+    const tours = await query;
     res.status(200).json({
       status: 'success',
       requestedAt: req.requestTime,
