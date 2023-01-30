@@ -22,6 +22,23 @@ exports.getAllTours = async (req, res) => {
 
     //making a query field to find...
     const query = Tour.find(JSON.parse(queryStr));
+
+    //adding pagination...
+    const page = req.query.page * 1 || 1;
+    const limit = req.query.limit * 1 || 100;
+
+    //so here basically what we are doing is seeing that skip
+    //contain the page - 1 * limit value in which limit is by default set to 10..
+    const skip = (page - 1) * limit;
+
+    query = query.skip(skip).limit(limit);
+
+    if (req.query.page) {
+      //used to counting the number of documents in the page....
+      const numTours = await Tour.countDocuments();
+      //if the skip is more than we must throw an error...
+      if (skip >= numTours) throw new Error('This page is not avaliable!!');
+    }
     const tours = await query;
     res.status(200).json({
       status: 'success',
